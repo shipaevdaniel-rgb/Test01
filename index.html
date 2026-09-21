@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Калькулятор Хиджази · Абджад</title>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+        --bg: #0f1220;
+        --bg-2: #171a2e;
+        --card: #1e2138;
+        --card-hover: #262a45;
+        --accent: #6c8cff;
+        --accent-2: #a06cff;
+        --text: #eef0ff;
+        --muted: #8a90b8;
+        --border: #2c3150;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: radial-gradient(circle at 20% 0%, #1a1f3a 0%, var(--bg) 60%);
+        color: var(--text);
+        min-height: 100vh;
+        padding: 24px 16px;
+        display: flex;
+        justify-content: center;
+    }
+
+    .container { width: 100%; max-width: 720px; }
+
+    header { text-align: center; margin-bottom: 28px; }
+
+    header h1 {
+        font-size: 26px;
+        font-weight: 700;
+        background: linear-gradient(90deg, var(--accent), var(--accent-2));
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 8px;
+    }
+
+    header p { color: var(--muted); font-size: 14px; }
+
+    .input-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+        margin-bottom: 20px;
+    }
+
+    .input-card label {
+        display: block;
+        font-size: 13px;
+        color: var(--muted);
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    textarea {
+        width: 100%;
+        min-height: 90px;
+        padding: 14px 16px;
+        font-size: 22px;
+        line-height: 1.6;
+        font-family: "Traditional Arabic", "Arabic Typesetting", "Amiri", "Scheherazade New", serif;
+        direction: rtl;
+        text-align: right;
+        background: var(--bg-2);
+        color: var(--text);
+        border: 1.5px solid var(--border);
+        border-radius: 12px;
+        resize: vertical;
+        outline: none;
+        transition: border-color .2s, box-shadow .2s;
+    }
+
+    textarea:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 4px rgba(108,140,255,0.15);
+    }
+
+    textarea::placeholder { color: #575d85; opacity: 1; }
+
+    .buttons { display: flex; gap: 10px; margin-top: 14px; }
+
+    button {
+        flex: 1;
+        padding: 14px 18px;
+        font-size: 15px;
+        font-weight: 600;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: transform .1s, opacity .2s, background .2s;
+        font-family: inherit;
+    }
+
+    button:active { transform: scale(0.98); }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--accent), var(--accent-2));
+        color: #fff;
+        box-shadow: 0 6px 18px rgba(108,140,255,0.35);
+    }
+    .btn-primary:hover { opacity: 0.92; }
+
+    .btn-secondary {
+        background: var(--bg-2);
+        color: var(--muted);
+        border: 1.5px solid var(--border);
+        flex: 0 0 auto;
+        padding: 14px 22px;
+    }
+    .btn-secondary:hover { color: var(--text); }
+
+    .results { display: grid; gap: 12px; }
+
+    .result-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 16px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: background .2s, border-color .2s, transform .15s;
+        animation: fadeIn .3s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(6px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-card:hover {
+        background: var(--card-hover);
+        border-color: #3a4070;
+        transform: translateY(-1px);
+    }
+
+    .result-left { display: flex; align-items: center; gap: 12px; }
+
+    .result-num {
+        width: 32px;
+        height: 32px;
+        flex-shrink: 0;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: 700;
+        color: #fff;
+        background: linear-gradient(135deg, var(--accent), var(--accent-2));
+        box-shadow: 0 4px 10px rgba(108,140,255,0.3);
+    }
+
+    .result-label { font-size: 14px; color: var(--text); line-height: 1.3; }
+
+    .result-value {
+        font-size: 24px;
+        font-weight: 800;
+        color: var(--accent);
+        font-variant-numeric: tabular-nums;
+        min-width: 50px;
+        text-align: right;
+        text-shadow: 0 0 20px rgba(108,140,255,0.4);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--muted);
+        font-size: 14px;
+        background: var(--card);
+        border: 1px dashed var(--border);
+        border-radius: 14px;
+    }
+
+    .stats {
+        margin-top: 16px;
+        font-size: 12px;
+        color: var(--muted);
+        text-align: center;
+    }
+    .stats span { color: var(--accent); font-weight: 600; }
+
+    @media (max-width: 480px) {
+        header h1 { font-size: 22px; }
+        textarea { font-size: 20px; }
+        .result-value { font-size: 22px; }
+        .result-label { font-size: 13px; }
+    }
+</style>
+</head>
+<body>
+<div class="container">
+
+    <header>
+        <h1>Калькулятор Хиджази · Абджад</h1>
+        <p>Введите слово или предложение на арабском языке</p>
+    </header>
+
+    <div class="input-card">
+        <label for="inputText">Текст на арабском</label>
+        <textarea id="inputText" placeholder="مثال: بسم الله الرحمن الرحيم" dir="rtl"></textarea>
+        <div class="buttons">
+            <button class="btn-primary" onclick="calculate()">Рассчитать</button>
+            <button class="btn-secondary" onclick="clearAll()">Очистить</button>
+        </div>
+    </div>
+
+    <div class="results" id="results">
+        <div class="empty-state">Введите текст и нажмите «Рассчитать»</div>
+    </div>
+
+    <div class="stats" id="stats"></div>
+</div>
+
+<script>
+// === Соответствие арабских букв и их значений ===
+const hijazi_values = {
+    'ا': 1, 'ب': 2, 'ت': 3, 'ث': 4, 'ج': 5, 'ح': 6, 'خ': 7, 'د': 8,
+    'ذ': 9, 'ر': 10, 'ز': 11, 'س': 12, 'ش': 13, 'ص': 14, 'ض': 15,
+    'ط': 16, 'ظ': 17, 'ع': 18, 'غ': 19, 'ف': 20, 'ق': 21, 'ك': 22,
+    'ل': 23, 'م': 24, 'ن': 25, 'ه': 26, 'و': 27, 'ي': 28,
+    'ء': 1, 'آ': 1, 'ٱ': 1, 'أ': 1, 'إ': 1, 'ئ': 1, 'ى': 1, 'ؤ': 1, 'ة': 3
+};
+
+const hijazi_reduction = {
+    'ا': 1, 'ب': 2, 'ت': 3, 'ث': 4, 'ج': 5, 'ح': 6, 'خ': 7, 'د': 8,
+    'ذ': 9, 'ر': 1, 'ز': 2, 'س': 3, 'ش': 4, 'ص': 5, 'ض': 6, 'ط': 7,
+    'ظ': 8, 'ع': 9, 'غ': 10, 'ف': 2, 'ق': 3, 'ك': 4, 'ل': 5, 'م': 6,
+    'ن': 7, 'ه': 8, 'و': 9, 'ي': 10, 'ء': 1, 'آ': 1, 'ٱ': 1, 'أ': 1, 'إ': 1, 'ئ': 1, 'ى': 1, 'ؤ': 1, 'ة': 3
+};
+
+const final_hijazi_reduction = {
+    'ا': 1, 'ب': 2, 'ت': 3, 'ث': 4, 'ج': 5, 'ح': 6, 'خ': 7, 'د': 8,
+    'ذ': 9, 'ر': 1, 'ز': 2, 'س': 3, 'ش': 4, 'ص': 5, 'ض': 6, 'ط': 7,
+    'ظ': 8, 'ع': 9, 'غ': 1, 'ف': 2, 'ق': 3, 'ك': 4, 'ل': 5, 'م': 6,
+    'ن': 7, 'ه': 8, 'و': 9, 'ي': 1, 'ء': 1, 'آ': 1, 'ٱ': 1, 'أ': 1, 'إ': 1, 'ئ': 1, 'ى': 1, 'ؤ': 1, 'ة': 3
+};
+
+const abjad_values = {
+    'ا': 1, 'ب': 2, 'ج': 3, 'د': 4, 'ه': 5, 'و': 6, 'ز': 7, 'ح': 8,
+    'ط': 9, 'ي': 10, 'ك': 11, 'ل': 12, 'م': 13, 'ن': 14, 'س': 15,
+    'ع': 16, 'ف': 17, 'ص': 18, 'ق': 19, 'ر': 20, 'ش': 21, 'ت': 22,
+    'ث': 23, 'خ': 24, 'ذ': 25, 'ض': 26, 'ظ': 27, 'غ': 28,
+    'ء': 1, 'آ': 1, 'ٱ': 1, 'أ': 1, 'إ': 1, 'ئ': 1, 'ى': 1, 'ؤ': 1, 'ة': 22
+};
+
+const abjad_reduction = {
+    'ا': 1, 'ب': 2, 'ج': 3, 'د': 4, 'ه': 5, 'و': 6, 'ز': 7, 'ح': 8,
+    'ط': 9, 'ي': 1, 'ك': 2, 'ل': 3, 'م': 4, 'ن': 5, 'س': 6, 'ع': 7,
+    'ف': 8, 'ص': 9, 'ق': 10, 'ر': 2, 'ش': 3, 'ت': 4, 'ث': 5, 'خ': 6,
+    'ذ': 7, 'ض': 8, 'ظ': 9, 'غ': 10,
+    'ء': 1, 'آ': 1, 'ٱ': 1, 'أ': 1, 'إ': 1, 'ئ': 1, 'ى': 1, 'ؤ': 1, 'ة': 4
+};
+
+const final_abjad_reduction = {
+    'ا': 1, 'ب': 2, 'ج': 3, 'د': 4, 'ه': 5, 'و': 6, 'ز': 7, 'ح': 8,
+    'ط': 9, 'ي': 1, 'ك': 2, 'ل': 3, 'م': 4, 'ن': 5, 'س': 6, 'ع': 7,
+    'ف': 8, 'ص': 9, 'ق': 1, 'ر': 2, 'ش': 3, 'ت': 4, 'ث': 5, 'خ': 6,
+    'ذ': 7, 'ض': 8, 'ظ': 9, 'غ': 1,
+    'ء': 1, 'آ': 1, 'ٱ': 1, 'أ': 1, 'إ': 1, 'ئ': 1, 'ى': 1, 'ؤ': 1, 'ة': 4
+};
+
+// === Расчёт значений ===
+function calculateValues(inputText) {
+    inputText = inputText.replace(/ /g, ""); // Убираем пробелы
+
+    const total = (map) => {
+        let s = 0;
+        for (const ch of inputText) s += (map[ch] || 0);
+        return s;
+    };
+
+    return {
+        hijazi_sum:           total(hijazi_values),
+        hijazi_reduced_sum:   total(hijazi_reduction),
+        final_hijazi_sum:     total(final_hijazi_reduction),
+        abjad_sum:            total(abjad_values),
+        abjad_reduced_sum:    total(abjad_reduction),
+        final_abjad_sum:      total(final_abjad_reduction),
+    };
+}
+
+// === Отображение результатов ===
+function calculate() {
+    const text = document.getElementById('inputText').value;
+    const container = document.getElementById('results');
+    const stats = document.getElementById('stats');
+
+    if (!text.trim()) {
+        container.innerHTML = '<div class="empty-state">Введите текст на арабском языке</div>';
+        stats.textContent = '';
+        return;
+    }
+
+    const r = calculateValues(text);
+
+    const labels = [
+        ["Значение № 1 Хиджази",                        r.hijazi_sum],
+        ["Значение № 2 Сведение по Хиджази",            r.hijazi_reduced_sum],
+        ["Значение № 3 Финальное сведение по Хиджази",  r.final_hijazi_sum],
+        ["Значение № 4 Абджади",                        r.abjad_sum],
+        ["Значение № 5 Сведение по абджад",             r.abjad_reduced_sum],
+        ["Значение № 6 Финальное сведение по абджад",   r.final_abjad_sum],
+    ];
+
+    container.innerHTML = labels.map(([name, val], i) => `
+        <div class="result-card" style="animation-delay:${i * 0.05}s">
+            <div class="result-left">
+                <div class="result-num">${i + 1}</div>
+                <div class="result-label">${name}</div>
+            </div>
+            <div class="result-value">${val}</div>
+        </div>
+    `).join('');
+
+    const cleanText = text.replace(/ /g, "");
+    stats.innerHTML = `Символов: <span>${cleanText.length}</span> · Учтено букв: <span>${[...cleanText].filter(c => (hijazi_values[c] || abjad_values[c])).length}</span>`;
+}
+
+function clearAll() {
+    document.getElementById('inputText').value = '';
+    document.getElementById('results').innerHTML =
+        '<div class="empty-state">Введите текст и нажмите «Рассчитать»</div>';
+    document.getElementById('stats').textContent = '';
+    document.getElementById('inputText').focus();
+}
+
+// Автоматический расчёт при вводе (с небольшой задержкой)
+let timer;
+document.getElementById('inputText').addEventListener('input', () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+        if (document.getElementById('inputText').value.trim()) calculate();
+    }, 350);
+});
+
+// Расчёт по Ctrl+Enter / Cmd+Enter
+document.getElementById('inputText').addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') calculate();
+});
+</script>
+</body>
+</html>
